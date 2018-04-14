@@ -21,7 +21,7 @@ y = tf.constant(housing.target.reshape(-1, 1), dtype=tf.float32, name='y')
 theta = tf.Variable(initial_value=tf.random_uniform([n+1,1],-1,1), dtype=tf.float32, name='theta')
 
 y_pred = tf.matmul(X, theta)
-error = tf.subtract(y,y_pred)
+error = tf.subtract(y, y_pred)
 mse = tf.reduce_mean(tf.square(error))
 
 gradient = (2/m) * tf.matmul(tf.transpose(X), y_pred)
