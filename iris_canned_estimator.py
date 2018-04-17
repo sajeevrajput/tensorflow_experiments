@@ -56,7 +56,10 @@ def input_fn(file_path, perform_shuffle=False, repeat_count=1):
 
 
 # define feature_column
+feature_columns = [tf.feature_column.numeric_column(k) for k in feature_name]
+
 # define model_function
+
 # train, evaluate, predict
 
 if __name__ == '__main__':
@@ -64,10 +67,10 @@ if __name__ == '__main__':
     next_batch = input_fn(file_path=FILEPATH_TRAIN, perform_shuffle=False)
     # print(next_batch)
     # print(next_batch)
-    with tf.Session() as sess:
-        while True:
-            try:
-                pprint.pprint(sess.run(next_batch))
-            except tf.errors.OutOfRangeError:
-                print('Reached End of file')
-                break
+    # with tf.Session() as sess:
+    #     while True:
+    #         try:
+    #             pprint.pprint(sess.run(next_batch))
+    #         except tf.errors.OutOfRangeError:
+    #             print('Reached End of file')
+    #             break
