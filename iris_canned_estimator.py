@@ -67,10 +67,10 @@ if __name__ == '__main__':
     next_batch = input_fn(file_path=FILEPATH_TRAIN, perform_shuffle=False)
     # print(next_batch)
     # print(next_batch)
-    # with tf.Session() as sess:
-    #     while True:
-    #         try:
-    #             pprint.pprint(sess.run(next_batch))
-    #         except tf.errors.OutOfRangeError:
-    #             print('Reached End of file')
-    #             break
+    with tf.Session() as sess:
+        while True:
+            try:
+                pprint.pprint(sess.run(next_batch))
+            except tf.errors.OutOfRangeError:
+                print('Reached End of file')
+                break
