@@ -58,21 +58,26 @@ def input_fn(file_path, perform_shuffle=False, repeat_count=1):
 # define feature_column
 feature_columns = [tf.feature_column.numeric_column(k) for k in feature_name]
 
+
 # define model_function
-def model_func(features, labels, mode):
-    pass
+# def model_func(features, labels, mode):
+#     pass
 
 # train, evaluate, predict
 
 if __name__ == '__main__':
 
-    next_batch = input_fn(file_path=FILEPATH_TRAIN, perform_shuffle=False)
-    # print(next_batch)
-    # print(next_batch)
-    with tf.Session() as sess:
-        while True:
-            try:
-                pprint.pprint(sess.run(next_batch))
-            except tf.errors.OutOfRangeError:
-                print('Reached End of file')
-                break
+    # next_batch = input_fn(file_path=FILEPATH_TRAIN, perform_shuffle=False)
+    iris_dnn = tf.estimator.DNNClassifier(hidden_units=[10,10],
+                                          feature_columns=feature_columns,
+                                          model_dir='./models',
+                                          n_classes=3,
+                                          optimizer='Adagrad')
+
+    # # Following line throws error. input_fn expects function object and not return value
+    # train_inp = input_fn(file_path=FILEPATH_TRAIN, perform_shuffle=True)
+    # iris_dnn.train(input_fn=train_inp, steps=10)
+
+    iris_dnn.train(input_fn=lambda: input_fn(FILEPATH_TRAIN,True))
+    ev = iris_dnn.evaluate(input_fn=lambda: input_fn(FILEPATH_TRAIN,True))
+    print(ev["loss"])
