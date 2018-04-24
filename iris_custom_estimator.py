@@ -3,6 +3,7 @@ from six.moves.urllib.request import urlopen
 import os
 import logging
 import tensorflow as tf
+import pprint
 
 
 LOG_PATH = './logs'
@@ -36,14 +37,32 @@ def download(url, file):
 download(URL_TRAIN, FILE_TRAIN_PATH)
 download(URL_TEST, FILE_TEST_PATH)
 
+feature_names = [
+    'SepalLength',
+    'SepalWidth',
+    'PetalLength',
+    'PetalWidth'
+]
+
 
 # 1. write one or more dataset importing functions
-def input_func(file):
-    dataset = tf.data.TextLineDataset(filenames=file).skip(1)
-    dataset = tf.decode_csv(dataset, [[0.], [0.], [0.], [0.], [0]])
-    label = dataset[-1]
-    features = dataset
-    print(dataset)
+def input_func(file, shuffle=False, repeat_count=1):
+    def decode_csv(line):
+        parsed_line = tf.decode_csv(line, [[0.], [0.], [0.], [0.], [0]])
+        label = parsed_line[-1]
+        del parsed_line[-1]
+        features = parsed_line
+        features_dict = dict(zip(feature_names, features))
+        return features_dict, label
+
+    dataset = tf.data.TextLineDataset(filenames=file).skip(1).map(decode_csv)
+    if shuffle:
+        dataset = dataset.shuffle(buffer_size=256)
+
+    dataset = dataset.repeat(repeat_count)
+    dataset = dataset.batch(32)
+    iterator = dataset.make_one_shot_iterator()
+    return iterator.get_next()
 
 # 2. define feature columns
 # 3. write model function
@@ -51,4 +70,7 @@ def input_func(file):
 
 
 if __name__ == '__main__':
-    input_func(file=FILE_TRAIN_PATH)
+    next_batch = input_func(file=FILE_TRAIN_PATH, shuffle=False)
+    with tf.Session() as sess:
+        pprint.pprint(sess.run(next_batch))
+        pprint.pprint(sess.run(next_batch))
