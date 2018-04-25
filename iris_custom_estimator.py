@@ -64,9 +64,17 @@ def input_func(file, shuffle=False, repeat_count=1):
     iterator = dataset.make_one_shot_iterator()
     return iterator.get_next()  # return format should be (dict(features), labels)
 
+
 # 2. define feature columns
+feature_columns = [tf.feature_column.numeric_column('SepalLength'),
+                   tf.feature_column.numeric_column('SepalWidth'),
+                   tf.feature_column.numeric_column('PetalLength'),
+                   tf.feature_column.numeric_column('PetalWidth')]
 
 # 3. write model function
+def model_fn(features, labels, mode):
+    pass
+
 # 4. implement training, evaluation and predictions
 
 
