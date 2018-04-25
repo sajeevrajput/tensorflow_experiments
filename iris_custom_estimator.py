@@ -3,7 +3,6 @@ from six.moves.urllib.request import urlopen
 import os
 import logging
 import tensorflow as tf
-import pprint
 
 
 LOG_PATH = './logs'
@@ -12,6 +11,7 @@ FILE_TRAIN_PATH = os.path.join(DOWNLOAD_LOCATION, 'iris_training.csv')
 FILE_TEST_PATH = os.path.join(DOWNLOAD_LOCATION, 'iris_test.csv')
 URL_TRAIN = "http://download.tensorflow.org/data/iris_training.csv"
 URL_TEST = "http://download.tensorflow.org/data/iris_test.csv"
+NO_EPOCHS_TRAIN = 10
 
 
 # Log setup
@@ -62,9 +62,10 @@ def input_func(file, shuffle=False, repeat_count=1):
     dataset = dataset.repeat(repeat_count)
     dataset = dataset.batch(32)
     iterator = dataset.make_one_shot_iterator()
-    return iterator.get_next()
+    return iterator.get_next()  # return format should be (dict(features), labels)
 
 # 2. define feature columns
+
 # 3. write model function
 # 4. implement training, evaluation and predictions
 
@@ -72,5 +73,9 @@ def input_func(file, shuffle=False, repeat_count=1):
 if __name__ == '__main__':
     next_batch = input_func(file=FILE_TRAIN_PATH, shuffle=False)
     with tf.Session() as sess:
-        pprint.pprint(sess.run(next_batch))
-        pprint.pprint(sess.run(next_batch))
+        for n in range(NO_EPOCHS_TRAIN):
+            try:
+                print("Run-{0}:\t{1}".format(n, sess.run(next_batch)))
+            except tf.errors.OutOfRangeError:
+                print("End of input")
+                break
