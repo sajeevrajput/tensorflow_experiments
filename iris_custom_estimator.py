@@ -71,9 +71,22 @@ feature_columns = [tf.feature_column.numeric_column('SepalLength'),
                    tf.feature_column.numeric_column('PetalLength'),
                    tf.feature_column.numeric_column('PetalWidth')]
 
+
 # 3. write model function
 def model_fn(features, labels, mode):
-    pass
+    input_layer = tf.feature_column.input_layer(features, feature_columns)
+    h1 = tf.layers.Dense(10, activation=tf.nn.relu)(input_layer)
+    h2 = tf.layers.Dense(10,activation=tf.nn.relu)(h1)
+    output_layer = tf.layers.Dense(3)(h2)
+
+    # PREDICTION
+    if mode == tf.estimator.ModeKeys.PREDICT:
+        predictions = {'class_predicted': tf.argmax(output_layer, axis=1)}
+        return tf.estimator.EstimatorSpec(mode, predictions)
+
+    labels = tf.squeeze(labels, axis=1)
+    loss = tf.losses.sparse_softmax_cross_entropy(labels, output_layer)
+
 
 # 4. implement training, evaluation and predictions
 
@@ -83,7 +96,7 @@ if __name__ == '__main__':
     with tf.Session() as sess:
         for n in range(NO_EPOCHS_TRAIN):
             try:
-                print("Run-{0}:\t{1}".format(n, sess.run(next_batch)))
+                print("Run-{0}:\t{1}".format(n, sess.run(model_fn(feature_columns, ))))
             except tf.errors.OutOfRangeError:
                 print("End of input")
                 break
