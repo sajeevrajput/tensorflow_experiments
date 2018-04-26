@@ -12,6 +12,7 @@ FILE_TEST_PATH = os.path.join(DOWNLOAD_LOCATION, 'iris_test.csv')
 URL_TRAIN = "http://download.tensorflow.org/data/iris_training.csv"
 URL_TEST = "http://download.tensorflow.org/data/iris_test.csv"
 NO_EPOCHS_TRAIN = 10
+LEARNING_RATE = 0.01
 
 
 # Log setup
@@ -74,29 +75,32 @@ feature_columns = [tf.feature_column.numeric_column('SepalLength'),
 
 # 3. write model function
 def model_fn(features, labels, mode):
+    # DESIGN NETWORK
     input_layer = tf.feature_column.input_layer(features, feature_columns)
     h1 = tf.layers.Dense(10, activation=tf.nn.relu)(input_layer)
     h2 = tf.layers.Dense(10,activation=tf.nn.relu)(h1)
     output_layer = tf.layers.Dense(3)(h2)
 
     # PREDICTION
+    predictions = {'class_predicted': tf.argmax(output_layer, axis=1)}
     if mode == tf.estimator.ModeKeys.PREDICT:
-        predictions = {'class_predicted': tf.argmax(output_layer, axis=1)}
-        return tf.estimator.EstimatorSpec(mode, predictions)
+        return tf.estimator.EstimatorSpec(mode=mode, predictions=predictions)
 
+    # EVALUATION
     labels = tf.squeeze(labels, axis=1)
     loss = tf.losses.sparse_softmax_cross_entropy(labels, output_layer)
+    accuracy = tf.metrics.accuracy(labels=labels, predictions=predictions['class_predicted'])
+    if mode == tf.estimator.ModeKeys.EVAL:
+        return tf.estimator.EstimatorSpec(mode=mode, loss=loss, eval_metric_ops=accuracy)
 
-
-# 4. implement training, evaluation and predictions
+    # TRAINING
+    train_op = tf.train.AdagradOptimizer(learning_rate=LEARNING_RATE).minimize(loss=loss)
+    if mode == tf.estimator.ModeKeys.TRAIN:
+        return tf.estimator.EstimatorSpec(mode=mode, loss=loss, train_op=train_op)
 
 
 if __name__ == '__main__':
-    next_batch = input_func(file=FILE_TRAIN_PATH, shuffle=False)
-    with tf.Session() as sess:
-        for n in range(NO_EPOCHS_TRAIN):
-            try:
-                print("Run-{0}:\t{1}".format(n, sess.run(model_fn(feature_columns, ))))
-            except tf.errors.OutOfRangeError:
-                print("End of input")
-                break
+    iris_custom_estimator = tf.estimator.Estimator(model_fn=model_fn,
+                                                   model_dir='./models')
+    iris_custom_estimator.train(input_fn=lambda : input_func(FILE_TRAIN_PATH, shuffle=True, repeat_count=1))
+    predictions = iris_custom_estimator.evaluate(input_fn=lambda : input_func(FILE_TEST_PATH, shuffle=False))
