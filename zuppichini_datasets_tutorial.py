@@ -62,8 +62,8 @@ iter2 = dataset2.make_initializable_iterator()  # The returned iterator will be 
 #         except tf.errors.OutOfRangeError:
 #             break
 
-train_data3 = (np.random.sample((50,2)), np.random.sample((50,1)))
-test_data3 = (np.random.sample((10,2)), np.random.sample((10,1)))
+train_data3 = (np.random.sample((50, 2)), np.random.sample((50, 1)))
+test_data3 = (np.random.sample((10, 2)), np.random.sample((10, 1)))
 
 feat, labels = tf.placeholder(dtype=tf.float32, shape=[None, 2]), tf.placeholder(dtype=tf.float32, shape=[None, 1])
 data3 = tf.data.Dataset.from_tensor_slices((feat, labels))
@@ -71,13 +71,30 @@ iter3 = data3.make_initializable_iterator()
 
 # _features, _labels = iter3.get_next()
 
-with tf.Session() as sess3:
-    print("TRAIN DATA")
-    sess3.run(iter3.initializer, feed_dict={feat: train_data3[0], labels: train_data3[1]})
-    print(sess3.run(iter3.get_next()))
-    print(sess3.run(iter3.get_next()))
+# with tf.Session() as sess3:
+#     print("TRAIN DATA")
+#     sess3.run(iter3.initializer, feed_dict={feat: train_data3[0], labels: train_data3[1]})
+#     print(sess3.run(iter3.get_next()))
+#     print(sess3.run(iter3.get_next()))
+#
+#     print("TEST DATA")
+#     sess3.run(iter3.initializer, feed_dict={feat: test_data3[0], labels: test_data3[1]})
+#     print(sess3.run(iter3.get_next()))
+#     print(sess3.run(iter3.get_next()))
 
-    print("TEST DATA")
-    sess3.run(iter3.initializer, feed_dict={feat: test_data3[0], labels: test_data3[1]})
-    print(sess3.run(iter3.get_next()))
-    print(sess3.run(iter3.get_next()))
+
+train_dataset = tf.data.Dataset.from_tensor_slices((np.random.sample((100,2)), np.random.sample((100,1))))
+test_dataset = tf.data.Dataset.from_tensor_slices((np.random.sample((10,2)), np.random.sample((10,1))))
+
+iter4 = tf.data.Iterator.from_structure(output_types=train_dataset.output_types)
+train_op = iter4.make_initializer(train_dataset)  # same iterator being used for different datasets
+test_op = iter4.make_initializer(test_dataset)
+
+with tf.Session() as sess4:
+    sess4.run(train_op)
+    print(sess4.run(iter4.get_next()))
+    print(sess4.run(iter4.get_next()))
+
+    sess4.run(test_op)
+    print(sess4.run(iter4.get_next()))
+    print(sess4.run(iter4.get_next()))
